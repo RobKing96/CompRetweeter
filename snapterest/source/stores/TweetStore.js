@@ -1,10 +1,12 @@
 var AppDispatcher = require('../dispatcher/AppDispatcher');
 var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
-var tweet = null;
+var streamTweets = {};
 
 function setTweet(recievedTweet) {
-	tweet = recievedTweet;
+	console.log('setTweet - tweetstore');
+	console.log(recievedTweet.id);
+	streamTweets[recievedTweet.id] = recievedTweet;
 }
 
 function emitChange() {
@@ -21,8 +23,8 @@ var TweetStore = assign({}, EventEmitter.prototype, {
 		this.removeListener('change', callback);
 	},
 	
-	getTweet: function () {
-		return tweet;
+	getStreamTweets: function () {
+		return streamTweets;
 	}
 });
 

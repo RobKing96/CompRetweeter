@@ -11,31 +11,24 @@ var listItemStyle = {
 	listStyle: 'none'
 };
 
-var TweetList = React.createClass({
+var StreamList = React.createClass({
 	
-	getListOfTweetIds: function() {
-		return Object.keys(this.props.tweets);
+	addTweetToCollection: function(tweet) {
+		CollectionActionCreators.addTweetToCollection(tweet);
 	},
 	
-	removeTweetFromCollection: function(tweet) {
-		CollectionActionCreators.removeTweetFromCollection(tweet.id);
+	getListOfTweetIds: function() {
+		console.log(this.props.streamTweets);
+		console.log('obj');
+		return Object.keys(this.props.streamTweets);
 	},
 	
 	getTweetElement: function(tweetId) {
-		var tweet = this.props.tweets[tweetId];
-		var handleRemoveTweetFromCollection = this.removeTweetFromCollection;
+		var tweet = this.props.streamTweets[tweetId];
 		var tweetElement;
 		
-		if(handleRemoveTweetFromCollection){
-			tweetElement = (
-				<Tweet
-					tweet={tweet}
-					onImageClick={handleRemoveTweetFromCollection}
-				/>
-			);
-		} else{
-			tweetElement = 	<Tweet tweet={tweet} />;
-		}
+		tweetElement = 	<Tweet tweet={tweet} 
+						onImageClick = {this.addTweetToCollection}/>;
 		
 		return <li style={listItemStyle} key={tweet.id}>{tweetElement}</li>;
 	},
@@ -52,4 +45,4 @@ var TweetList = React.createClass({
 	}
 });
 
-module.exports = TweetList;
+module.exports = StreamList;

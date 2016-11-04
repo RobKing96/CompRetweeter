@@ -8,12 +8,12 @@ var Application = React.createClass({
 		return (
 			<div className="container-fluid">
 				<div className="row">
-					<div className="col-md-4 text-center">
+					<div className="col-md-6 text-center">
 						
 						<Stream />
 					
 					</div>
-					<div className="col-md-8">
+					<div className="col-md-6">
 					
 						<Collection />
 					</div>

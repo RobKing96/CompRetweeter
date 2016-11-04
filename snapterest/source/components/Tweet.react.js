@@ -16,7 +16,6 @@ var imageStyle = {
 };
 
 var textStyle = {
-	maxHeight: '100px',
 	maxWidth: '300px'
 };
 
@@ -41,10 +40,14 @@ var Tweet = React.createClass({
 	},
 	
 	handleImageClick: function() {
+		console.log('CLLLLLLLLLLLIIIIIIIIIIIIIIIICKKKKKK');
+		
 		var tweet = this.props.tweet;
 		var onImageClick = this.props.onImageClick;
 		
+		console.log(onImageClick);
 		if(onImageClick) {
+			console.log('CLICK2');
 			onImageClick(tweet);
 		}
 	},

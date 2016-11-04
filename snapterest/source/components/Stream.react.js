@@ -5,10 +5,8 @@ var TweetStore = require('../stores/TweetStore');
 
 var Stream = React.createClass({
 	
-	getInitialState: function() {
-		return {
-			tweet: TweetStore.getTweet()
-		}
+	getInitialState: function() {		
+		return TweetStore.getStreamTweets();
 	},
 	
 	componentDidMount: function() {
@@ -20,16 +18,18 @@ var Stream = React.createClass({
 	},
 	
 	onTweetChange: function() {
+		console.log('onTweetChange');
 		this.setState({
-			tweet:TweetStore.getTweet()
+			streamTweets: TweetStore.getStreamTweets()
 		});
 	},
 	
 	render: function() {
-		var tweet = this.state.tweet;
+		var tweets = this.state.streamTweets;
+		console.log(tweets);
 		
-		if(tweet) {
-			return (<StreamTweet tweet={tweet} />);
+		if(tweets) {
+			return (<StreamTweet tweets={tweets} />);
 		}
 		
 		return (

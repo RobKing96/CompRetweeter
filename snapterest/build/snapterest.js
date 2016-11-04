@@ -37063,11 +37063,11 @@ module.exports = {
 		AppDispatcher.dispatch(action);
 	},
 
-	removeTweetFromCollection: function (tweetId) {
+	removeTweetFromCollection: function (tweet) {
 
 		var action = {
 			type: 'remove_tweet_from_collection',
-			tweetId: tweetId
+			tweet: tweet
 		};
 
 		AppDispatcher.dispatch(action);
@@ -37094,7 +37094,7 @@ module.exports = {
 
 };
 
-},{"../dispatcher/AppDispatcher":226}],213:[function(require,module,exports){
+},{"../dispatcher/AppDispatcher":227}],213:[function(require,module,exports){
 var AppDispatcher = require('../dispatcher/AppDispatcher');
 
 function recieveTweet(tweet) {
@@ -37113,7 +37113,7 @@ module.exports = {
 	recieveTweet: recieveTweet
 };
 
-},{"../dispatcher/AppDispatcher":226}],214:[function(require,module,exports){
+},{"../dispatcher/AppDispatcher":227}],214:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Application = require('./components/Application.react');
@@ -37123,7 +37123,7 @@ WebAPIUtils.initializeStreamOfTweets();
 
 ReactDOM.render(React.createElement(Application, null), document.getElementById('react-application'));
 
-},{"./components/Application.react":215,"./utils/WebAPIUtils":231,"react":163,"react-dom":9}],215:[function(require,module,exports){
+},{"./components/Application.react":215,"./utils/WebAPIUtils":232,"react":163,"react-dom":9}],215:[function(require,module,exports){
 var React = require('react');
 var Stream = require('./Stream.react');
 var Collection = require('./Collection.react');
@@ -37141,12 +37141,12 @@ var Application = React.createClass({
 				{ className: 'row' },
 				React.createElement(
 					'div',
-					{ className: 'col-md-4 text-center' },
+					{ className: 'col-md-6 text-center' },
 					React.createElement(Stream, null)
 				),
 				React.createElement(
 					'div',
-					{ className: 'col-md-8' },
+					{ className: 'col-md-6' },
 					React.createElement(Collection, null)
 				)
 			)
@@ -37249,7 +37249,7 @@ var Collection = React.createClass({
 
 module.exports = Collection;
 
-},{"../stores/CollectionStore":227,"../utils/CollectionUtils":229,"./CollectionControls.react":218,"./Header.react":221,"./TweetList.react":225,"react":163,"react-dom/server":10}],218:[function(require,module,exports){
+},{"../stores/CollectionStore":228,"../utils/CollectionUtils":230,"./CollectionControls.react":218,"./Header.react":221,"./TweetList.react":226,"react":163,"react-dom/server":10}],218:[function(require,module,exports){
 var React = require('react');
 var Header = require('./Header.react');
 var Button = require('./Button.react');
@@ -37329,7 +37329,7 @@ var CollectionControls = React.createClass({
 
 module.exports = CollectionControls;
 
-},{"../actions/CollectionActionCreators":212,"../stores/CollectionStore":227,"./Button.react":216,"./CollectionExportForm.react":219,"./CollectionRenameForm.react":220,"./Header.react":221,"react":163}],219:[function(require,module,exports){
+},{"../actions/CollectionActionCreators":212,"../stores/CollectionStore":228,"./Button.react":216,"./CollectionExportForm.react":219,"./CollectionRenameForm.react":220,"./Header.react":221,"react":163}],219:[function(require,module,exports){
 var React = require('react');
 
 var formStyle = {
@@ -37433,7 +37433,7 @@ var CollectionRenameForm = React.createClass({
 
 module.exports = CollectionRenameForm;
 
-},{"../actions/CollectionActionCreators":212,"../stores/CollectionStore":227,"./Button.react":216,"./Header.react":221,"react":163,"react-dom":9}],221:[function(require,module,exports){
+},{"../actions/CollectionActionCreators":212,"../stores/CollectionStore":228,"./Button.react":216,"./Header.react":221,"react":163,"react-dom":9}],221:[function(require,module,exports){
 var React = require('react');
 
 var headerStyle = {
@@ -37475,9 +37475,7 @@ var Stream = React.createClass({
 
 
 	getInitialState: function () {
-		return {
-			tweet: TweetStore.getTweet()
-		};
+		return TweetStore.getStreamTweets();
 	},
 
 	componentDidMount: function () {
@@ -37489,16 +37487,18 @@ var Stream = React.createClass({
 	},
 
 	onTweetChange: function () {
+		console.log('onTweetChange');
 		this.setState({
-			tweet: TweetStore.getTweet()
+			streamTweets: TweetStore.getStreamTweets()
 		});
 	},
 
 	render: function () {
-		var tweet = this.state.tweet;
+		var tweets = this.state.streamTweets;
+		console.log(tweets);
 
-		if (tweet) {
-			return React.createElement(StreamTweet, { tweet: tweet });
+		if (tweets) {
+			return React.createElement(StreamTweet, { tweets: tweets });
 		}
 
 		return React.createElement(Header, { text: 'Waiting for public photos from Twitter...' });
@@ -37507,20 +37507,73 @@ var Stream = React.createClass({
 
 module.exports = Stream;
 
-},{"../stores/TweetStore":228,"./Header.react":221,"./StreamTweet.react":223,"react":163}],223:[function(require,module,exports){
+},{"../stores/TweetStore":229,"./Header.react":221,"./StreamTweet.react":224,"react":163}],223:[function(require,module,exports){
 var React = require('react');
-var ReactDOM = require('react-dom');
-var Header = require('./Header.react');
-var Tweet = require('./Tweet.react');
+var Tweet = require('./Tweet.react.js');
 var CollectionActionCreators = require('../actions/CollectionActionCreators');
 
-var StreamTweet = React.createClass({
-	displayName: 'StreamTweet',
+var listStyle = {
+	padding: '0'
+};
+
+var listItemStyle = {
+	display: 'inline-block',
+	listStyle: 'none'
+};
+
+var StreamList = React.createClass({
+	displayName: 'StreamList',
 
 
 	addTweetToCollection: function (tweet) {
 		CollectionActionCreators.addTweetToCollection(tweet);
 	},
+
+	getListOfTweetIds: function () {
+		console.log(this.props.streamTweets);
+		console.log('obj');
+		return Object.keys(this.props.streamTweets);
+	},
+
+	getTweetElement: function (tweetId) {
+		var tweet = this.props.streamTweets[tweetId];
+		var tweetElement;
+
+		tweetElement = React.createElement(Tweet, { tweet: tweet,
+			onImageClick: this.addTweetToCollection });
+
+		return React.createElement(
+			'li',
+			{ style: listItemStyle, key: tweet.id },
+			tweetElement
+		);
+	},
+
+	render: function () {
+
+		var tweetElements = this.getListOfTweetIds().map(this.getTweetElement);
+
+		return React.createElement(
+			'ul',
+			{ style: listStyle },
+			tweetElements
+		);
+	}
+});
+
+module.exports = StreamList;
+
+},{"../actions/CollectionActionCreators":212,"./Tweet.react.js":225,"react":163}],224:[function(require,module,exports){
+var React = require('react');
+var ReactDOM = require('react-dom');
+var Header = require('./Header.react');
+var Tweet = require('./Tweet.react');
+var StreamList = require('./StreamList.react');
+var TweetStore = require('../stores/TweetStore');
+
+var StreamTweet = React.createClass({
+	displayName: 'StreamTweet',
+
 
 	getInitialState: function () {
 		console.log('[Snapterest] StreamTweet: 1. Running getInitialState()');
@@ -37548,6 +37601,8 @@ var StreamTweet = React.createClass({
 	componentDidMount: function () {
 		console.log('[Snapterest] StreamTweet: 3. Running componentDidMount()');
 
+		TweetStore.addChangeListener(this.onStreamChange);
+
 		var componentDOMRepresentaion = ReactDOM.findDOMNode(this);
 
 		console.log(componentDOMRepresentaion.children[0].outerHTML);
@@ -37556,36 +37611,37 @@ var StreamTweet = React.createClass({
 		window.snapterest.tweetHtml = componentDOMRepresentaion.children[1].outerHTML;
 	},
 
-	componentWillReceiveProps: function (nextProps) {
-		console.log('[Snapterest] StreamTweet: 4. Running componentWillReceiveProps()');
-
-		var currentTweetLength = this.props.tweet.text.length;
-		var nextTweetLength = nextProps.tweet.text.length;
-		var isNumberOfCharactersIncreasing = nextTweetLength > currentTweetLength;
-		var headerText;
-
-		this.setState({
-			numberOfCharactersIsIncreasing: isNumberOfCharactersIncreasing
-		});
-
-		if (isNumberOfCharactersIncreasing) {
-			headerText = 'Number of characters is increasing';
-		} else {
-			headerText = 'Latest public photo from Twitter';
-		}
-
-		this.setState({
-			headerText: headerText
-		});
-
-		window.snapterest.numberOfRecievedTweets++;
-	},
-
-	shouldComponentUpdate: function (nextProps, nextState) {
-		console.log('[Snapterest] StreamTweet: 5.Running shouldComponentUpdate()');
-
-		return nextProps.tweet.text.length > 1;
-	},
+	/*componentWillReceiveProps: function(nextProps) {
+ 	console.log('[Snapterest] StreamTweet: 4. Running componentWillReceiveProps()');
+ 	console.log(nextProps);
+ 	
+ 	var currentTweetLength = this.props.tweet.text.length;
+ 	var nextTweetLength = nextProps.tweet.text.length;
+ 	var isNumberOfCharactersIncreasing = (nextTweetLength > currentTweetLength);
+ 	var headerText;
+ 	
+ 	this.setState({
+ 		numberOfCharactersIsIncreasing: isNumberOfCharactersIncreasing
+ 	});
+ 	
+ 	if(isNumberOfCharactersIncreasing){
+ 		headerText = 'Number of characters is increasing';
+ 	}else{
+ 		headerText = 'Latest public photo from Twitter'
+ 	}
+ 	
+ 	this.setState({
+ 		headerText: headerText
+ 	});
+ 	
+ 	window.snapterest.numberOfRecievedTweets++;
+ },
+ 
+ shouldComponentUpdate: function(nextProps, nextState) {
+ 	console.log('[Snapterest] StreamTweet: 5.Running shouldComponentUpdate()');
+ 	
+ 	return (nextProps.tweet.text.length > 1);
+ },*/
 
 	componentWillUpdate: function (nextProps, nextState) {
 		console.log('[Snapterest] StreamTweet: 6. Running componentWillUpdate()');
@@ -37600,27 +37656,37 @@ var StreamTweet = React.createClass({
 	componentWillUnmount: function () {
 		console.log('[Snapterest] StreamTweet: 8. Running componentWillUnmount()');
 
+		TweetStore.removeChangeListener(this.onStreamChange);
 		delete window.snapterest;
+	},
+
+	onStreamChange: function () {
+		console.log('change');
+		this.setState({
+			streamTweets: TweetStore.getStreamTweets()
+		});
 	},
 
 	render: function () {
 		console.log('[Snapterest] StreamTweet: Running render()');
-
-		return React.createElement(
-			'section',
-			null,
-			React.createElement(Header, { text: this.state.headerText }),
-			React.createElement(Tweet, {
-				tweet: this.props.tweet,
-				onImageClick: this.addTweetToCollection
-			})
-		);
+		console.log(this.props.tweets);
+		if (this.props.tweets !== null) {
+			console.log('not null');
+			return React.createElement(
+				'section',
+				null,
+				React.createElement(Header, { text: this.state.headerText }),
+				React.createElement(StreamList, {
+					streamTweets: this.props.tweets
+				})
+			);
+		}
 	}
 });
 
 module.exports = StreamTweet;
 
-},{"../actions/CollectionActionCreators":212,"./Header.react":221,"./Tweet.react":224,"react":163,"react-dom":9}],224:[function(require,module,exports){
+},{"../stores/TweetStore":229,"./Header.react":221,"./StreamList.react":223,"./Tweet.react":225,"react":163,"react-dom":9}],225:[function(require,module,exports){
 var React = require('react');
 
 var tweetStyle = {
@@ -37639,7 +37705,6 @@ var imageStyle = {
 };
 
 var textStyle = {
-	maxHeight: '100px',
 	maxWidth: '300px'
 };
 
@@ -37666,10 +37731,14 @@ var Tweet = React.createClass({
 	},
 
 	handleImageClick: function () {
+		console.log('CLLLLLLLLLLLIIIIIIIIIIIIIIIICKKKKKK');
+
 		var tweet = this.props.tweet;
 		var onImageClick = this.props.onImageClick;
 
+		console.log(onImageClick);
 		if (onImageClick) {
+			console.log('CLICK2');
 			onImageClick(tweet);
 		}
 	},
@@ -37696,7 +37765,7 @@ var Tweet = React.createClass({
 
 module.exports = Tweet;
 
-},{"react":163}],225:[function(require,module,exports){
+},{"react":163}],226:[function(require,module,exports){
 var React = require('react');
 var Tweet = require('./Tweet.react.js');
 var CollectionActionCreators = require('../actions/CollectionActionCreators');
@@ -37719,7 +37788,7 @@ var TweetList = React.createClass({
 	},
 
 	removeTweetFromCollection: function (tweet) {
-		CollectionActionCreators.removeTweetFromCollection(tweet.id);
+		CollectionActionCreators.removeTweetFromCollection(tweet);
 	},
 
 	getTweetElement: function (tweetId) {
@@ -37744,7 +37813,7 @@ var TweetList = React.createClass({
 	},
 
 	render: function () {
-
+		console.log('renderingtweet list');
 		var tweetElements = this.getListOfTweetIds().map(this.getTweetElement);
 
 		return React.createElement(
@@ -37757,11 +37826,11 @@ var TweetList = React.createClass({
 
 module.exports = TweetList;
 
-},{"../actions/CollectionActionCreators":212,"./Tweet.react.js":224,"react":163}],226:[function(require,module,exports){
+},{"../actions/CollectionActionCreators":212,"./Tweet.react.js":225,"react":163}],227:[function(require,module,exports){
 var Dispatcher = require('flux').Dispatcher;
 module.exports = new Dispatcher();
 
-},{"flux":4}],227:[function(require,module,exports){
+},{"flux":4}],228:[function(require,module,exports){
 var AppDispatcher = require('../dispatcher/AppDispatcher');
 var EventEmitter = require('events').EventEmitter;
 var $ = require('jQuery');
@@ -37777,11 +37846,15 @@ function addTweetToCollection(tweet) {
 	likeTweet(tweet.id, tweet.user.id);
 }
 
-function removeTweetFromCollection(tweetId) {
-	delete collectionTweets[tweetId];
+function removeTweetFromCollection(tweet) {
+	console.log('TWEEEEEEEEEEEET');
+	console.log(tweet);
+	delete collectionTweets[tweet.id];
+	unlikeTweet(tweet.id, tweet.user.id);
 }
 
 function removeAllTweetsFromCollection() {
+	unretweetAll(collectionTweets);
 	collectionTweets = {};
 }
 
@@ -37823,7 +37896,7 @@ function handleAction(action) {
 			break;
 
 		case 'remove_tweet_from_collection':
-			removeTweetFromCollection(action.tweetId);
+			removeTweetFromCollection(action.tweet);
 			emitChange();
 			break;
 
@@ -37846,18 +37919,42 @@ $(document).ready(function () {
 
 	window.likeTweet = function (tweetId, userId) {
 
-		var tweetUrl = "http://localhost:8080/log/LogIn.php?tweetId=";
+		var tweetUrl = "http://localhost:8080/log/AddToCollection.php?tweetId=";
 		tweetUrl += tweetId + "&userId=" + userId;
 
 		$.ajax({
 			type: "GET",
 			url: tweetUrl,
-			timeout: 15000,
+			timeout: 15000
+		});
+	};
 
-			success: function (info) {
-				var returnValue = info;
-				console.log(info);
-			}
+	window.unlikeTweet = function (tweetId, userId) {
+
+		var tweetUrl = "http://localhost:8080/log/RemoveFromCollection.php?tweetId=";
+		tweetUrl += tweetId + "&userId=" + userId;
+
+		$.ajax({
+			type: "GET",
+			url: tweetUrl,
+			timeout: 15000
+		});
+	};
+
+	window.unretweetAll = function (collectionTweets) {
+
+		var tweetUrl = "http://localhost:8080/log/RemoveFromCollection.php?userId=";
+		var user = collectionTweets[0].user.id;
+		tweetUrl += user;
+
+		for (i = 0; i < collectionTweets.length; i++) {
+			tweetUrl += "&id[" + collectionTweets([i]) + "]=" + i;
+		}
+
+		$.ajax({
+			type: "GET",
+			url: tweetUrl,
+			timeout: 15000
 		});
 	};
 });
@@ -37866,14 +37963,16 @@ CollectionStore.dispatchToken = AppDispatcher.register(handleAction);
 
 module.exports = CollectionStore;
 
-},{"../dispatcher/AppDispatcher":226,"events":2,"jQuery":7,"object-assign":8}],228:[function(require,module,exports){
+},{"../dispatcher/AppDispatcher":227,"events":2,"jQuery":7,"object-assign":8}],229:[function(require,module,exports){
 var AppDispatcher = require('../dispatcher/AppDispatcher');
 var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
-var tweet = null;
+var streamTweets = {};
 
 function setTweet(recievedTweet) {
-	tweet = recievedTweet;
+	console.log('setTweet - tweetstore');
+	console.log(recievedTweet.id);
+	streamTweets[recievedTweet.id] = recievedTweet;
 }
 
 function emitChange() {
@@ -37890,8 +37989,8 @@ var TweetStore = assign({}, EventEmitter.prototype, {
 		this.removeListener('change', callback);
 	},
 
-	getTweet: function () {
-		return tweet;
+	getStreamTweets: function () {
+		return streamTweets;
 	}
 });
 
@@ -37906,7 +38005,7 @@ TweetStore.dispatchToken = AppDispatcher.register(handleAction);
 
 module.exports = TweetStore;
 
-},{"../dispatcher/AppDispatcher":226,"events":2,"object-assign":8}],229:[function(require,module,exports){
+},{"../dispatcher/AppDispatcher":227,"events":2,"object-assign":8}],230:[function(require,module,exports){
 function getNumberOfTweetsInCollection(collection) {
 	var TweetUtils = require('./TweetUtils');
 	var listOfCollectionTweetIds = TweetUtils.getListOfTweetIds(collection);
@@ -37923,14 +38022,14 @@ module.exports = {
 	isEmptyCollection: isEmptyCollection
 };
 
-},{"./TweetUtils":230}],230:[function(require,module,exports){
+},{"./TweetUtils":231}],231:[function(require,module,exports){
 function getListOfTweetIds(tweets) {
 	return Object.keys(tweets);
 }
 
 module.exports.getListOfTweetIds = getListOfTweetIds;
 
-},{}],231:[function(require,module,exports){
+},{}],232:[function(require,module,exports){
 var SnapkiteStreamClient = require('snapkite-stream-client');
 var TweetActionCreators = require('../actions/TweetActionCreators');
 

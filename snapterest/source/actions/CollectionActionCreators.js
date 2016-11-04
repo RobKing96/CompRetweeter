@@ -12,11 +12,11 @@ module.exports = {
 		AppDispatcher.dispatch(action);
 	},
 	
-	removeTweetFromCollection: function(tweetId) {
+	removeTweetFromCollection: function(tweet) {
 		
 		var action = {
 			type: 'remove_tweet_from_collection',
-			tweetId: tweetId
+			tweet: tweet
 		};
 		
 		AppDispatcher.dispatch(action);

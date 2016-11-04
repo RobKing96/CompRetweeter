@@ -2,14 +2,11 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var Header = require('./Header.react');
 var Tweet = require('./Tweet.react');
-var CollectionActionCreators = require('../actions/CollectionActionCreators');
+var StreamList = require('./StreamList.react');
+var TweetStore = require('../stores/TweetStore');
 
 
 var StreamTweet = React.createClass({
-	
-	addTweetToCollection: function(tweet) {
-		CollectionActionCreators.addTweetToCollection(tweet);
-	},
 	
 	getInitialState: function(){
 		console.log('[Snapterest] StreamTweet: 1. Running getInitialState()');
@@ -37,6 +34,8 @@ var StreamTweet = React.createClass({
 	componentDidMount: function() {
 		console.log('[Snapterest] StreamTweet: 3. Running componentDidMount()');
 		
+		TweetStore.addChangeListener(this.onStreamChange);
+		
 		var componentDOMRepresentaion = ReactDOM.findDOMNode(this);
 		
 		console.log(componentDOMRepresentaion.children[0].outerHTML);
@@ -45,8 +44,9 @@ var StreamTweet = React.createClass({
 		window.snapterest.tweetHtml = componentDOMRepresentaion.children[1].outerHTML;
 	},
 	
-	componentWillReceiveProps: function(nextProps) {
+	/*componentWillReceiveProps: function(nextProps) {
 		console.log('[Snapterest] StreamTweet: 4. Running componentWillReceiveProps()');
+		console.log(nextProps);
 		
 		var currentTweetLength = this.props.tweet.text.length;
 		var nextTweetLength = nextProps.tweet.text.length;
@@ -74,7 +74,7 @@ var StreamTweet = React.createClass({
 		console.log('[Snapterest] StreamTweet: 5.Running shouldComponentUpdate()');
 		
 		return (nextProps.tweet.text.length > 1);
-	},
+	},*/
 	
 	componentWillUpdate: function (nextProps, nextState) {
 		console.log('[Snapterest] StreamTweet: 6. Running componentWillUpdate()');
@@ -89,21 +89,32 @@ var StreamTweet = React.createClass({
 	componentWillUnmount: function() {
 		console.log('[Snapterest] StreamTweet: 8. Running componentWillUnmount()');
 		
+		TweetStore.removeChangeListener(this.onStreamChange);
 		delete window.snapterest;
+	},
+	
+	onStreamChange: function() {
+		console.log('change');
+		this.setState({
+			streamTweets: TweetStore.getStreamTweets()
+		});
 	},
 	
 	render: function() {
 		console.log('[Snapterest] StreamTweet: Running render()');
-		
-		return(
-			<section>
-				<Header text={this.state.headerText} />
-				<Tweet
-					tweet={this.props.tweet}
-					onImageClick={this.addTweetToCollection} 
-				/>
-			</section>
-		);
+		console.log(this.props.tweets);
+		if(this.props.tweets !== null)
+		{
+			console.log('not null');
+			return(
+				<section>
+					<Header text={this.state.headerText} />
+					<StreamList
+						streamTweets={this.props.tweets}
+					/>
+				</section>
+			);
+		}
 	}
 });
 

@@ -13,11 +13,15 @@ function addTweetToCollection(tweet) {
 	likeTweet(tweet.id, tweet.user.id);
 }
 
-function removeTweetFromCollection(tweetId) {
-	delete collectionTweets[tweetId];
+function removeTweetFromCollection(tweet) {
+	console.log('TWEEEEEEEEEEEET');
+	console.log(tweet);
+	delete collectionTweets[tweet.id];
+	unlikeTweet(tweet.id, tweet.user.id)
 }
 
 function removeAllTweetsFromCollection() {
+	unretweetAll(collectionTweets);
 	collectionTweets = {};
 }
 
@@ -59,7 +63,7 @@ function handleAction(action) {
 			break;
 			
 		case 'remove_tweet_from_collection':
-			removeTweetFromCollection(action.tweetId);
+			removeTweetFromCollection(action.tweet);
 			emitChange();
 			break;
 			
@@ -82,19 +86,42 @@ $(document).ready(function() {
 	
 	window.likeTweet = function (tweetId, userId) {
 		
-		var tweetUrl = "http://localhost:8080/log/LogIn.php?tweetId=";
+		var tweetUrl = "http://localhost:8080/log/AddToCollection.php?tweetId=";
 		tweetUrl += tweetId+"&userId="+userId;
-		
 		
 		$.ajax({
 			type: "GET",
 			url: tweetUrl,
 			timeout: 15000,
-			
-			success: function(info) {
-				var returnValue = info;
-				console.log(info);
-			}
+		});
+	}
+	
+	window.unlikeTweet = function (tweetId, userId) {
+		
+		var tweetUrl = "http://localhost:8080/log/RemoveFromCollection.php?tweetId=";
+		tweetUrl += tweetId+"&userId="+userId;
+		
+		$.ajax({
+			type: "GET",
+			url: tweetUrl,
+			timeout: 15000
+		});
+	}
+	
+	window.unretweetAll = function (collectionTweets) {
+		
+		var tweetUrl = "http://localhost:8080/log/RemoveFromCollection.php?userId=";
+		var user = collectionTweets[0].user.id;
+		tweetUrl += user;
+		
+		for(i=0; i < collectionTweets.length; i++){
+			tweetUrl += ("&id[" + collectionTweets([i])+ "]=" +i);
+		}
+		
+		$.ajax({
+			type: "GET",
+			url: tweetUrl,
+			timeout: 15000
 		});
 	}
 });

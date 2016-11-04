@@ -18,7 +18,7 @@ var TweetList = React.createClass({
 	},
 	
 	removeTweetFromCollection: function(tweet) {
-		CollectionActionCreators.removeTweetFromCollection(tweet.id);
+		CollectionActionCreators.removeTweetFromCollection(tweet);
 	},
 	
 	getTweetElement: function(tweetId) {
@@ -41,7 +41,7 @@ var TweetList = React.createClass({
 	},
 	
 	render: function() {
-	
+		console.log('renderingtweet list');
 		var tweetElements = this.getListOfTweetIds().map(this.getTweetElement);
 	
 		return(
